@@ -1,0 +1,30 @@
+{% extends 'blogmain/base.html' %}
+{% block content %}
+<h1>Изменение поста</h1>
+<div class="container mt-5 mb-5">
+<div class="row d-flex align-items-center justify-content-center">
+<div class="col-md-6">
+<div class="card">
+     <div class="d-flex justify-content-between p-2 px-3">
+         <div class="d-flex flex-row align-items-center">
+             <div class="d-flex flex-column ml-2" > <a class="text-decoration-none text-reset"><span class="font-weight-bold">{{blog.Author}}</span></a> <small class="text-primary">Collegues</small><form method="post" enctype="multipart/form-data">
+               {% csrf_token %}<input type="hidden" name="id" value="{{blog.id}}"><input type="text" name="title" value="{{blog.title}}"> </div>
+         </div>
+         <div class="d-flex flex-row mt-1 ellipsis"> <a href="{% url 'showblog' blog.id %}" class="text-decoration-none text-reset"><small class="mr-2">{{blog.data}}</small></a>
+             <div class="d-flex justify-content-center position-relative">
+             </div> </div> 
+     </div> {% for i in image %} <a class="text-decoration-none text-reset"><img src="{{i.image.url}}" class="img-fluid"></a>{% endfor %}
+     <input type="file" name="image" multiple>
+     <div class="p-2">
+          <input type="text" name="desc" value="{{blog.desc}}">
+         <hr>
+         <button class="btn btn-success" type="post">Добавить изменения статьи</button>
+     </form>
+     <a href="{% url 'deletepost' blog.id %}"><button class="btn btn-danger">Удалить</button></a>
+         </div>
+     </div>
+ </div>
+</div>
+</div>
+</div>
+{% endblock %}

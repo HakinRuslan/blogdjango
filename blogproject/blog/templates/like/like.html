@@ -1,0 +1,40 @@
+{% load like_post %}
+
+
+{% islike blogid as isliked %}
+{% countLikes blogid as likes_count %}
+
+{% if isliked %}
+    {% postlikedid blogid as bloglikesid %}
+{% endif %}
+
+<form action="{% if not isliked %}{% url 'addlikeonblog' %}{% else %}{% url 'removelikeonblog' %}{% endif %}" method="post">
+    {% csrf_token %}
+    <input type="hidden" name="blogids" value="{{blogid}}">
+    <input type="hidden" name="in" value="{{request.path}}">
+
+    {% if isliked %}
+        <input type="hidden" name="bloglikesid" value="{{bloglikesid}}">
+    {% endif %}
+    {% if not request.user.is_authenticated %}
+    <div class="pe-auto">
+        {% if not isliked %}
+        <i class="fa-regular fa-heart"></i>
+        {% else %}
+        <i class="fa-solid fa-heart"></i>
+        {% endif %}
+        <span>{{likes_count}}</span>
+    </div>
+    {% else %}
+    <button type="submit" class="btn btn-danger">
+        {% if not isliked %}
+        <i class="fa-regular fa-heart"></i>
+        {% else %}
+        <i class="fa-solid fa-heart"></i>
+        {% endif %}
+        <span>{{likes_count}}</span>
+    </button>
+    {% endif %}
+</form>
+
+

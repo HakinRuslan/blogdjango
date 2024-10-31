@@ -1,0 +1,312 @@
+{% extends 'blogmain/base.html' %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+
+{% if not request.user.is_authenticated %}
+    {% if blogs %}
+    {% if formcr %}    
+<div class="row d-flex align-items-center justify-content-center">
+<div class="col-md-6">
+  <div class="container mt-5 mb-5"> 
+    <div class="row d-flex align-items-center justify-content-center">
+    <form action="{% url 'createpost' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+    {{formcr}}
+    <input type="file" name="image" multiple>
+    <button type="submit" class="btn btn-warning">Создать</button>
+</form>
+    </div>
+    </div>
+    </div>
+</div>
+    {% endif %}
+        {% for i in blogs %}
+  <div class="container mt-5 mb-5">
+    <div class="row d-flex align-items-center justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="d-flex justify-content-between p-2 px-3">
+                    <div class="d-flex flex-row align-items-center">
+                        <div class="d-flex flex-column ml-2" > <a href="{% url 'profile' i.blog.Author.id %}" class="text-decoration-none text-reset"><span class="font-weight-bold">{{i.blog.Author}}</span></a> <small class="text-primary">Collegues</small> <a href="{% url 'showblog' i.blog.id %}" class="text-decoration-none text-reset"><strong class="font-weight-bold">{{i.blog.title}}</strong></a> </div>
+                    </div>
+                    <div class="d-flex flex-row mt-1 ellipsis"> <a href="{% url 'showblog' i.blog.id %}" class="text-decoration-none text-reset"><small class="mr-2">{{i.blog.data}}</small></a>
+                        <div class="d-flex justify-content-center position-relative">
+                            {% if request.user == i.blog.Author %}
+                            <button class="btn btn-primary" id="mainButton{{i.blog.id}}" onclick="buttons('{{ i.blog.id }}')">...</button>
+                            <div class="position-absolute" id="hiddenButtons{{i.blog.id}}" style="display: none;">
+                                <a href="{% url 'updatepost' i.blog.id %}"><button class="btn btn-secondary mb-2">Изменить</button></a>
+                                <a href="{% url 'deletepost' i.blog.id %}"><button class="btn btn-secondary">Удалить</button></a>
+                            </div>
+                            {% endif %}
+                        </div> </div>
+                </div> {% for i in i.imgs %} <a href="{% url 'showblog' i.blog.id %}" class="text-decoration-none text-reset"><img src="{{i.image.url}}" class="img-fluid"></a>{% endfor %}
+                <div class="p-2">
+                    <a href="{% url 'showblog' i.blog.id %}" class="text-decoration-none text-reset"><p class="text-justify">{{i.blog.desc}}</p></a>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class=" d-flex flex-row">
+                            {% include 'like/like.html' with blogid=i.blog.id %} {% include 'comm/comm.html' with blogid=i.blog.id %} 
+                            </div>
+                        {% if i.countcomms > 0 %}<div class="d-flex flex-row muted-color"><span>{{i.countcomms}} comments</span></div>{% else %}{% endif %}
+                    </div>
+                    <div id="show-comments-{{ i.blog.id }}" style="display: none;">
+                    <hr>
+                    <div class="comments">
+                      {% for a in i.comms %}
+                        <div class="d-flex flex-column bg-light">
+                            <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' a.comm.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{a.comm.Author}}</span></a> <a href="{% url 'showblog' a.comm.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{a.comm.desc}}</small></a>
+                                <div class="d-flex flex-row align-items-center status"> {% include 'like/likecomm.html' with commentid=a.comm.id %}  <button onclick="togglereps('{{ a.comm.id }}')" >Reply</button> {% if a.countrep == 0 %}{% else %}<button onclick="togglereps('{{ a.comm.id }}')">Показать ответы({{a.countrep}})</button>{% endif %} <a href="{% url 'showblog' a.comm.Blog.id %}" class="text-decoration-none text-reset"><small>{{a.comm.data}}</small></a> </div>
+                            </div>
+                            <div id="more-reps-{{ a.comm.id }}" style="display: none;">
+                            {% if not a.countrep == 0 %}
+                            {% for reply in a.reply %}
+                            <div class="d-flex flex-column bg-light">
+                                <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' reply.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{reply.Author}}</span></a> <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{reply.desc}}</small></a>
+                                    <div class="d-flex flex-row align-items-center status"> {% include 'like/likeonreply.html' with replyid=reply.id %} <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small>{{reply.data}}</small></a> </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if a.havemorereps %}
+                            <div id="more-repsm-{{ a.comm.id }}" style="display: none;">
+                                {% for reply in a.morereps %}
+                                <div class="d-flex flex-column bg-light">
+                                    <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' reply.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{reply.Author}}</span></a> <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{reply.desc}}</small></a>
+                                        <div class="d-flex flex-row align-items-center status"> {% include 'like/likeonreply.html' with replyid=reply.id %} <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small>{{reply.data}}</small></a> </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button onclick="togglerepsm('{{ a.comm.id }}')" >Больше</button>
+                            {% endif %}
+                            {% else %}
+                            {% endif %}
+                            <h6 class="text-secondary">Зарегистрируйтесь или войдите, чтобы оставлять ответы</h6>
+
+                        </div>
+                        {% endfor %}
+                        {% if i.havemorecomms %}
+                        <div id="more-comments-{{ i.blog.id }}" style="display: none;">
+                        {% for a in i.morecomms %}
+                        <div class="d-flex flex-column bg-light">
+                          <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' a.comm.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{a.comm.Author}}</span></a> <a href="{% url 'showblog' a.comm.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{a.comm.desc}}</small></a>
+                              <div class="d-flex flex-row align-items-center status"> {% include 'like/likecomm.html' with commentid=a.comm.id %}  <button onclick="togglereps('{{ a.comm.id }}')" >Reply</button> {% if a.countrep == 0 %}{% else %}<button onclick="togglereps('{{ a.comm.id }}')">Показать ответы({{a.countrep}})</button>{% endif %} <a href="{% url 'showblog' a.comm.Blog.id %}" class="text-decoration-none text-reset"><small>{{a.comm.data}}</small></a> </div>
+                          </div>
+                          <div id="more-reps-{{ a.comm.id }}" style="display: none;">
+                            {% if not a.countrep == 0 %}
+                            {% for reply in a.reply %}
+                            <div class="d-flex flex-column bg-light">
+                                <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' reply.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{reply.Author}}</span></a> <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{reply.desc}}</small></a>
+                                    <div class="d-flex flex-row align-items-center status"> {% include 'like/likeonreply.html' with replyid=reply.id %} <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small>{{reply.data}}</small></a> </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if a.havemorereps %}
+                            <div id="more-repsm-{{ a.comm.id }}" style="display: none;">
+                                {% for reply in a.morereps %}
+                                <div class="d-flex flex-column bg-light">
+                                    <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' reply.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{reply.Author}}</span></a> <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{reply.desc}}</small></a>
+                                        <div class="d-flex flex-row align-items-center status"> {% include 'like/likeonreply.html' with replyid=reply.id %} <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small>{{reply.data}}</small></a> </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                          </div>
+                            <button onclick="togglerepsm('{{ a.comm.id }}')" >Больше</button>
+                            {% endif %}
+                            {% else %}
+                            {% endif %}
+                            <h6 class="text-secondary">Зарегистрируйтесь или войдите, чтобы оставлять ответы</h6>
+                        </div>
+                        </div>
+                        {% endfor %}
+                        </div>
+                        <button class="btn btn-link p-0" onclick="toggleComments('{{ i.blog.id }}')">Показать Коментарии</button>
+                        {% endif %}
+                        <h6 class="text-secondary">Зарегистрируйтесь или войдите, чтобы оставлять коментарии</h6>
+                    </div>
+                </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+        {% endfor %}
+  <div class="container d-flex align-items-center flex-column my-5">
+  <h1>Чтобы увидеть больше контента зарегистрируйтесь или войдите!</h1>
+  <a href="{% url 'register' %}">Регистрация</a> <a href="{% url 'login' %}">Вход</a>
+</div>
+    {% else %}
+<div class="container d-flex align-items-center flex-column my-5">
+  <h1>Извините, пока контента нету.</h1>
+  <hr>
+  <h1>Зарегистрируйтесь или войдите!</h1>
+  <a href="{% url 'register' %}">Регистрация</a> <a href="{% url 'login' %}">Вход</a>
+</div>
+    {% endif %}
+{% else %}
+{% if blogs %}
+{% if formcr %}
+{% request.user.is_authenticated%}  
+<div class="row d-flex align-items-center justify-content-center">
+<div class="col-md-6">
+  <div class="container mt-5 mb-5"> 
+    <div class="row d-flex align-items-center justify-content-center">
+    <form action="{% url 'createpost' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+    {{formcr}}
+    <input type="file" name="image" multiple>
+    <button type="submit" class="btn btn-warning">Создать</button>
+</form>
+    </div>
+    </div>
+    </div>
+</div>
+    {% endif %}
+    {% endif %}
+{% for i in blogs %}
+  <div class="container mt-5 mb-5">
+    <div class="row d-flex align-items-center justify-content-center">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="d-flex justify-content-between p-2 px-3">
+                    <div class="d-flex flex-row align-items-center">
+                        <div class="d-flex flex-column ml-2" > <a href="{% url 'profile' i.blog.Author.id %}" class="text-decoration-none text-reset"><span class="font-weight-bold">{{i.blog.Author}}</span></a> <small class="text-primary">Collegues</small> <a href="{% url 'showblog' i.blog.id %}" class="text-decoration-none text-reset"><strong class="font-weight-bold">{{i.blog.title}}</strong></a> </div>
+                    </div>
+                    <div class="d-flex flex-row mt-1 ellipsis"> <a href="{% url 'showblog' i.blog.id %}" class="text-decoration-none text-reset"><small class="mr-2">{{i.blog.data}}</small></a>
+                        <div class="d-flex justify-content-center position-relative">
+                                {% if request.user == i.blog.Author %}
+                            <button class="btn btn-primary" id="mainButton{{i.blog.id}}" onclick="buttons('{{ i.blog.id }}')">...</button>
+                            <div class="position-absolute" id="hiddenButtons{{i.blog.id}}" style="display: none;">
+                                <a href="{% url 'updatepost' i.blog.id %}"><button class="btn btn-secondary mb-2">Изменить</button></a>
+                                <a href="{% url 'deletepost' i.blog.id %}"><button class="btn btn-secondary">Удалить</button></a>
+                            </div>
+                                {% endif %}
+                        </div> </div>
+                </div> {% for i in i.imgs %} <a href="{% url 'showblog' i.blog.id %}" class="text-decoration-none text-reset"><img src="{{i.image.url}}" class="img-fluid"></a>{% endfor %}
+                <div class="p-2">
+                    <a href="{% url 'showblog' i.blog.id %}" class="text-decoration-none text-reset"><p class="text-justify">{{i.blog.desc}}</p></a>
+                    <hr>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class=" d-flex flex-row">
+                        {% include 'like/like.html' with blogid=i.blog.id %} {% include 'comm/comm.html' with blogid=i.blog.id %} 
+                        </div>
+                        {% if i.countcomms > 0 %}<div class="d-flex flex-row muted-color"><span>{{i.countcomms}} comments</span></div>{% else %}{% endif %}
+                    </div>
+                    <div id="show-comments-{{ i.blog.id }}" style="display: none;">
+                    <hr>
+                    <div class="comments">
+                    {% for a in i.comms %}
+                        <div class="d-flex flex-column bg-light">
+                            <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' a.comm.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{a.comm.Author}}</span></a> <a href="{% url 'showblog' a.comm.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{a.comm.desc}}</small></a>
+                                <div class="d-flex flex-row align-items-center status"> {% include 'like/likecomm.html' with commentid=a.comm.id %}  <button onclick="togglereps('{{ a.comm.id }}')" >Reply</button> {% if not a.countrep == 0 %}<button onclick="togglereps('{{ a.comm.id }}')">Показать ответы({{a.countrep}})</button>{% else %}{% endif %} <a href="{% url 'showblog' a.comm.Blog.id %}" class="text-decoration-none text-reset"><small>{{a.comm.data}}</small></a> </div>
+                            </div>
+                            <div id="more-reps-{{ a.comm.id }}" style="display: none;">
+                                {% if not a.countrep == 0 %}
+                                {% for reply in a.reply %}
+                            <div class="d-flex flex-column bg-light">
+                                <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' reply.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{reply.Author}}</span></a> <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{reply.desc}}</small></a>
+                                    <div class="d-flex flex-row align-items-center status"> {% include 'like/likeonreply.html' with replyid=reply.id %} <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small>{{reply.data}}</small></a> </div>
+                                </div>
+                            </div>
+                                {% endfor %}
+                                    {% if a.havemorereps %}
+                            <div id="more-repsm-{{ a.comm.id }}" style="display: none;">
+                                    {% for reply in a.morereps %}
+                                <div class="d-flex flex-column bg-light">
+                                    <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' reply.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{reply.Author}}</span></a> <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{reply.desc}}</small></a>
+                                        <div class="d-flex flex-row align-items-center status"> {% include 'like/likeonreply.html' with replyid=reply.id %} <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small>{{reply.data}}</small></a> </div>
+                                    </div>
+                                </div>
+                                    {% endfor %}
+                            </div>
+                            <button onclick="togglerepsm('{{ a.comm.id }}')" >Больше</button>
+                                    {% endif %}
+                                    {% else %}
+                                    {% endif %}
+                            {% include 'form/reply.html' with idcomm=a.comm.id desc=replyform.desc %}
+                        </div>
+
+                        </div>
+                                    {% endfor %}
+                    {% if i.havemorecomms %}
+                        <div id="more-comments-{{ i.blog.id }}" style="display: none;">
+                        {% for a in i.morecomms %}
+                        <div class="d-flex flex-column bg-light">
+                          <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' a.comm.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{a.comm.Author}}</span></a> <a href="{% url 'showblog' a.comm.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{a.comm.desc}}</small></a>
+                              <div class="d-flex flex-row align-items-center status"> {% include 'like/likecomm.html' with commentid=a.comm.id %}  <button onclick="togglereps('{{ a.comm.id }}')" >Reply</button> {% if not a.countrep == 0 %}<button onclick="togglereps('{{ a.comm.id }}')">Показать ответы({{a.countrep}})</button>{% else %}{% endif %} <a href="{% url 'showblog' a.comm.Blog.id %}" class="text-decoration-none text-reset"><small>{{a.comm.data}}</small></a> </div>
+                          </div>
+                          <div id="more-reps-{{ a.comm.id }}" style="display: none;">
+                            {% if not a.countrep == 0 %}
+                            {% for reply in a.reply %}
+                            <div class="d-flex flex-column bg-light">
+                                <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' reply.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{reply.Author}}</span></a> <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{reply.desc}}</small></a>
+                                    <div class="d-flex flex-row align-items-center status"> {% include 'like/likeonreply.html' with replyid=reply.id %} <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small>{{reply.data}}</small></a> </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                            {% if a.havemorereps %}
+                            <div id="more-repsm-{{ a.comm.id }}" style="display: none;">
+                                {% for reply in a.morereps %}
+                                <div class="d-flex flex-column bg-light">
+                                    <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' reply.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{reply.Author}}</span></a> <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{reply.desc}}</small></a>
+                                        <div class="d-flex flex-row align-items-center status"> {% include 'like/likeonreply.html' with replyid=reply.id %} <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small>{{reply.data}}</small></a> </div>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                            <button onclick="togglerepsm('{{ a.comm.id }}')" >Больше</button>
+                            {% endif %}
+                            {% else %}
+                            {% endif %}
+                            {% include 'form/reply.html' with idcomm=a.comm.id desc=replyform.desc %}
+                        </div>
+                        </div>
+                            {% endfor %}
+                        </div>
+                        <button class="btn btn-link p-0" onclick="toggleComments('{{ i.blog.id }}')">Показать Коментарии</button>
+                    {% endif %}
+                        {% include 'form/comment.html' with blogid=i.blog.id desc=form.desc %}   
+                    </div>
+                </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endfor %}
+  {% else %}
+  {% if formcr %}
+  {% request.user.is_authenticated%}   
+<div class="row d-flex align-items-center justify-content-center">
+<div class="col-md-6">
+  <div class="container mt-5 mb-5"> 
+    <div class="row d-flex align-items-center justify-content-center">
+    <form action="{% url 'createpost' %}" method="post" enctype="multipart/form-data">{% csrf_token %}
+    {{formcr}}
+    <input type="file" name="image" multiple>
+    <button type="submit" class="btn btn-warning">Создать</button>
+</form>
+    </div>
+    </div>
+    </div>
+</div>
+    {% endif %}
+    {% endif %}
+  <div class="container d-flex align-items-center flex-column my-5">
+  <h1>Извините, пока контента нету.</h1>
+    </div>
+  {% endif %}
+  {% endif %}
+<script>
+  function buttons(id) {
+    document.getElementById('mainButton' + id).addEventListener('click', function() {
+    const hiddenButtons = document.getElementById('hiddenButtons' + id);
+    if (hiddenButtons.style.display === "none") {
+        hiddenButtons.style.display = "flex";
+    } else {
+        hiddenButtons.style.display = "none";
+    }
+});
+  }
+</script>
+{% endblock %}

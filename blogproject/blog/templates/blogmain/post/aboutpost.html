@@ -1,0 +1,120 @@
+{% extends 'blogmain/base.html' %}
+{% block content %}
+{% if blogs %}
+<div class="container mt-5 mb-5">
+<div class="row d-flex align-items-center justify-content-center">
+<div class="col-md-6">
+<div class="card">
+    <div class="d-flex justify-content-between p-2 px-3">
+        <div class="d-flex flex-row align-items-center">
+            {% if blogs.user.iconuser %}<img src="{{blogs.user.iconuser.url}}" alt="profileicon" class="rounded-circle" width="50">{% else %}<img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="profileicon" class="rounded-circle" width="50">{% endif %}
+            <div class="d-flex flex-column ml-2" > <a href="{% url 'profile' blogs.blog.Author.id %}" class="text-decoration-none text-reset"><span class="font-weight-bold">{{blogs.blog.Author}}</span></a> <small class="text-primary">Collegues</small> <a href="{% url 'showblog' blogs.blog.id %}" class="text-decoration-none text-reset"><strong class="font-weight-bold">{{blogs.blog.title}}</strong></a> </div>
+        </div>
+        <div class="d-flex flex-row mt-1 ellipsis"> <a href="{% url 'showblog' blogs.blog.id %}" class="text-decoration-none text-reset"><small class="mr-2">{{blogs.blog.data}}</small></a>
+            <div class="position-relative">
+                {% if blogs.blog.Author == request.user %}
+                <button id="mainButton{{blogs.blog.id}}" onclick="buttons('{{ blogs.blog.id }}')">...</button>
+                <div class="position-absolute" id="hiddenButtons{{blogs.blog.id}}" style="display: none;">
+                    <a href="{% url 'updatepost' blogs.blog.id %}"><button class="btn btn-secondary mb-2">Изменить</button></a>
+                    <a href="{% url 'deletepost' blogs.blog.id %}"><button class="btn btn-secondary">Удалить</button></a>
+                </div>
+                {% endif %}
+            </div> </div> 
+    </div> {% for i in blogs.imgs %} <a href="{% url 'showblog' i.blog.id %}" class="text-decoration-none text-reset"><img src="{{i.image.url}}" class="img-fluid"></a>{% endfor %}
+    <div class="p-2">
+        <a href="{% url 'showblog' blogs.blog.id %}" class="text-decoration-none text-reset"><p class="text-justify">{{blogs.blog.desc}}</p></a>
+        <hr>
+        <div class="d-flex justify-content-between align-items-center">
+            <div class=" d-flex flex-row">
+                {% include 'like/like.html' with blogid=blogs.blog.id %} {% include 'comm/comm.html' with blogid=i.blog.id %} 
+                </div>
+            {% if blogs.countcomms > 0 %}<div class="d-flex flex-row muted-color"><span>{{blogs.countcomms}} comments</span></div>{% else %}{% endif %}
+        </div>
+        <div id="show-comments-{{ i.blog.id }}" style="display: none;">
+        <hr>
+        <div class="comments">
+          {% for a in blogs.comms %}
+            <div class="d-flex flex-column bg-light">{% if a.user.iconuser %}<img src="{{a.user.iconuser.url}}" alt="profileicon" class="rounded-circle" width="40">{% else %}<img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="profileicon" class="rounded-circle" width="50">{% endif %}
+                <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' a.comm.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{a.comm.Author}}</span></a> <a href="{% url 'showblog' a.comm.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{a.comm.desc}}</small></a>
+                    <div class="d-flex flex-row align-items-center status"> {% include 'like/likecomm.html' with commentid=a.comm.id %}  <button onclick="togglereps('{{ a.comm.id }}')" >Reply</button> {% if a.countrep == 0 %}{% else %}<button onclick="togglereps('{{ a.comm.id }}')">Показать ответы({{a.countrep}})</button>{% endif %} <a href="{% url 'showblog' a.comm.Blog.id %}" class="text-decoration-none text-reset"><small>{{a.comm.data}}</small></a> </div>
+                </div>
+                <div id="more-reps-{{ a.comm.id }}" style="display: none;">
+                {% if not a.countrep == 0 %}
+                {% for reply in a.reply %}
+                <div class="d-flex flex-column bg-light">{% if reply.Author.iconuser %}<img src="{{reply.Author.iconuser.url}}" alt="profileicon" class="rounded-circle" width="40">{% else %}<img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="profileicon" class="rounded-circle" width="50">{% endif %}
+                    <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' reply.Author.User.id %}" class="text-decoration-none text-reset"><span class="name">{{reply.Author.User}}</span></a> <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{reply.desc}}</small></a>
+                        <div class="d-flex flex-row align-items-center status"> {% include 'like/likeonreply.html' with replyid=reply.id %} <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small>{{reply.data}}</small></a> </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% if a.havemorereps %}
+                <div id="more-repsm-{{ a.comm.id }}" style="display: none;">
+                    {% for reply in a.morereps %}
+                    <div class="d-flex flex-column bg-light">{% if reply.Author.iconuser %}<img src="{{reply.Author.iconuser.url}}" alt="profileicon" class="rounded-circle" width="40">{% else %}<img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="profileicon" class="rounded-circle" width="50">{% endif %}
+                        <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' reply.Author.User.id %}" class="text-decoration-none text-reset"><span class="name">{{reply.Author.User}}</span></a> <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{reply.desc}}</small></a>
+                            <div class="d-flex flex-row align-items-center status"> {% include 'like/likeonreply.html' with replyid=reply.id %} <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small>{{reply.data}}</small></a> </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button onclick="togglerepsm('{{ a.comm.id }}')" >Больше</button>
+                {% endif %}
+                {% else %}
+                {% endif %}
+                {% include 'form/reply.html' with idcomm=a.comm.id desc=replyform.desc %}
+            </div>
+
+            </div>
+            {% endfor %}
+            {% if blogs.havemorecomms %}
+            <div id="more-comments-{{ blogs.blog.id }}" style="display: none;">
+            {% for a in blogs.morecomms %}
+            <div class="d-flex flex-column bg-light">{% if a.user.iconuser %}<img src="{{a.user.iconuser.url}}" alt="profileicon" class="rounded-circle" width="40">{% else %}<img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="profileicon" class="rounded-circle" width="50">{% endif %}
+              <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' a.comm.Author.id %}" class="text-decoration-none text-reset"><span class="name">{{a.comm.Author}}</span></a> <a href="{% url 'showblog' a.comm.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{a.comm.desc}}</small></a>
+                  <div class="d-flex flex-row align-items-center status"> {% include 'like/likecomm.html' with commentid=a.comm.id %}  <button onclick="togglereps('{{ a.comm.id }}')" >Reply</button> {% if a.countrep == 0 %}{% else %}<button onclick="togglereps('{{ a.comm.id }}')">Показать ответы({{a.countrep}})</button>{% endif %} <a href="{% url 'showblog' a.comm.Blog.id %}" class="text-decoration-none text-reset"><small>{{a.comm.data}}</small></a> </div>
+              </div>
+              <div id="more-reps-{{ a.comm.id }}" style="display: none;">
+                {% if not a.countrep == 0 %}
+                {% for reply in a.reply %}
+                <div class="d-flex flex-column bg-light">{% if reply.Author.iconuser %}<img src="{{reply.Author.iconuser.url}}" alt="profileicon" class="rounded-circle" width="40">{% else %}<img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="profileicon" class="rounded-circle" width="50">{% endif %}
+                    <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' reply.Author.User.id %}" class="text-decoration-none text-reset"><span class="name">{{reply.Author.User}}</span></a> <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{reply.desc}}</small></a>
+                        <div class="d-flex flex-row align-items-center status"> {% include 'like/likeonreply.html' with replyid=reply.id %} <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small>{{reply.data}}</small></a> </div>
+                    </div>
+                </div>
+                {% endfor %}
+                {% if a.havemorereps %}
+                <div id="more-repsm-{{ a.comm.id }}" style="display: none;">
+                    {% for reply in a.morereps %}
+                    <div class="d-flex flex-column bg-light">{% if reply.Author.iconuser %}<img src="{{reply.Author.iconuser.url}}" alt="profileicon" class="rounded-circle" width="40">{% else %}<img src="https://bootdey.com/img/Content/avatar/avatar7.png" alt="profileicon" class="rounded-circle" width="50">{% endif %}
+                        <div class="d-flex flex-column ml-2"> <a href="{% url 'profile' reply.Author.User.id %}" class="text-decoration-none text-reset"><span class="name">{{reply.Author.User}}</span></a> <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small class="comment-text">{{reply.desc}}</small></a>
+                            <div class="d-flex flex-row align-items-center status"> {% include 'like/likeonreply.html' with replyid=reply.id %} <a href="{% url 'showblog' reply.comment.Blog.id %}" class="text-decoration-none text-reset"><small>{{reply.data}}</small></a> </div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                <button onclick="togglerepsm('{{ a.comm.id }}')" >Больше</button>
+                {% endif %}
+                {% else %}
+                {% endif %}
+                {% include 'form/reply.html' with idcomm=a.comm.id desc=replyform.desc %}
+            </div>
+            </div>
+            {% endfor %}
+            </div>
+            <button class="btn btn-link p-0" onclick="toggleComments('{{ blogs.blog.id }}')">Показать Коментарии</button>
+            {% endif %}
+            {% include 'form/comment.html' with blogid=blogs.blog.id desc=form.desc %}   
+        </div>
+    </div>
+</div>
+    </div>
+</div>
+</div>
+</div>
+</div>
+{% else %}
+<div class="container d-flex align-items-center flex-column my-5">
+    <h1>Извините, пока контента нету.</h1>
+      </div>
+{% endif %}
+{% endblock %}

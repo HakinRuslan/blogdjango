@@ -1,0 +1,23 @@
+.custom-file-upload {
+    background-color: rgb(0, 174, 255);
+    color: rgb(247, 247, 247);
+    border-radius: 5px;
+    display: inline-block;
+    position: relative;
+}
+
+.custom-file-upload label {
+    height: 20px;
+    background: var(--c_blue_light_bg);
+    outline: 0;
+    border: 0;
+    width: 100%;
+    border-radius: var(--radius10);
+    font-family: inherit;
+    cursor: pointer;
+    padding: 5px;
+}
+
+.custom-file-upload input {
+    display: none;
+}

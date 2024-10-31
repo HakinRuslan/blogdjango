@@ -1,0 +1,5 @@
+{% if not request.user.is_authenticated %}
+<button onclick="ShowAllComments('{{ blogid }}')" ><i class="fa-solid fa-comment"></i></button>
+{% else %}
+<button class="btn btn-primary" onclick="ShowAllComments('{{ blogid }}')"><i class="fa-solid fa-comment"></i></button>
+{% endif %}

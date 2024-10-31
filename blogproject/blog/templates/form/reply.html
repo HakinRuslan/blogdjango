@@ -1,0 +1,12 @@
+
+{% if request.user.is_authenticated %}
+<div class="comment-input">
+    <form action="{% url 'createcomment' %}" method="post">{% csrf_token %}
+    <input type="hidden" value="{{idcomm}}" name="comment">
+    <input type="hidden" value="{{request.path}}" name="red">{{desc}} 
+    <button type="submit" class="btn btn-warning">Отправить</button>
+    </form>
+  </div>
+{% else %}
+<h6 class="text-secondary">Зарегистрируйтесь или войдите, чтобы оставлять ответы</h6>
+{% endif %}
